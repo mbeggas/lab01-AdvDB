@@ -2,13 +2,19 @@
 
 ## Objective
 
-In this lab, you'll design and implement a simple heap file system that allows for inserting, storing, and retrieving variable-length records in a paginated file. You will use low-level byte manipulation to manage records, their metadata, and free space within each page.
+In this lab, you'll implement a simple heap file system that allows for inserting, storing, and retrieving variable-length records in a paginated file. You will use low-level byte manipulation to manage records, their metadata, and free space within each page.
 
-By the end of the lab, you will:
+In this lab, the functions that manage the heap file are provided, including:
+- create heap file
+- Read page
+- write page
+- append page
 
-1. Create a heap file and manage pages within it.
-2. Insert records into specified pages, tracking metadata for each record.
-3. Retrieve records individually and in batches from each page.
+After explaining these functions and bytes manipulation in Python with examples, you are required to implement the following functionalities:
+1. Calculate the free space in a page.
+2. Insert a record into a page.
+3. Retrieve a record from a page.
+4. Get all records from a file.
 
 ## The used Heap file description
 The heap file follows a structure similar to that seen in the course, with a **page size of 4096 bytes**.
@@ -217,7 +223,7 @@ page_data = bytes(page_data_bytearray)
 ```
 
 ## Lab directives: Managing Pages and Records 
-1. ### Calculate the free space
+1. ### Calculate the free space in a page
 Write the function that calculates the free space give ```page_data```
 ```py
 def Calculate_free_space(page_data):
@@ -225,7 +231,7 @@ def Calculate_free_space(page_data):
 ```page_data``` is the 4096 bytes returned when reading a page from the file.
 To calculate the free space we need to know form the ```page_data``` the free space offset and the number of records.
 
-2. ### Insert a record
+2. ### Insert a record to a page
 ```py
 def insert_record_data_to_page_data(page_data, record_data):
   # check the free space vs record length
@@ -262,7 +268,7 @@ def get_record_from_file(file_name, page_number, record_id):
   #Retrieve a record from the specified page of the heap file given the record ID.
 ```
 
-4. ### Get all records
+4. ### Get all records from a file
 ```py
 def get_all_record_from_page(page_data, record_id):
   # Retrieve all records from the specified page_data.
