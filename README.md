@@ -180,10 +180,35 @@ The code reads a 2-byte integer from `page_data`, starting at byte index 4094, a
 
 1. #### Write value in given position from bytes in python
 
-To update the slot count for example in **page_data**
+To update the slot count for example in **page_data** the value in the bytes 4092-4093
 
+```py
+new_value = ...
+new_value_bytes = new_value.to_bytes( 2, 'big')
+page_data = (page_data[:4092]+new_value_bytes+page_data[4094:])
+```
+We can also use the```pack_into``` function from the module ```struct``` 
+```py
+new_value = ...
+page_data_buffer = bytearray(page_data)
+struct.pack_into('>H', page_data_buffer, 4092, nb_to_add )  # Big-endian
+page_data = bytes(page_data_buffer)
+```
 
+to insert many bytes of variable size such as ````record_data````
 
+```py
+data_length = len(data_bytes)
+page_data = (page_data[:start_byte_number] + data_bytes + page_data[start_byte_number+data_length:])
+
+```
+```py
+data_length = len(data_bytes)
+page_data_bytearray = bytearray(page_data)
+format = f'{record_length}B'  # 'B' is for unsigned char (1 byte unsigned int)
+struct.pack_into(format, page_data_bytearray, start_byte_number, *data_bytes)
+page_data = bytes(page_data_bytearray)
+```
 ### Managing Pages and Records 
 1. #### Calculate the free space
 ```py
