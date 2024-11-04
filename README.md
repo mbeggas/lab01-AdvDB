@@ -25,12 +25,14 @@ Each page contains a slot table located at the end of the page, starting from th
 The record format, in this lab, is simply  a set of bytes, for example:
 
 ```py
+record_data = b'\x42\x42\x42\x42\x42\x42'
+```
+Alternatively, you can use string literals, which represent ASCII codes. For the example above:
+```py
 record_data = b'BBBBBB'
 ```
 
-## Lab directives
-
-### Part 1: Setting Up the Heap File
+## Part 1: Given Functions for Setting Up the Heap File
 This parts provides the function that: creates an empty heap file, and read and append page
 
 All this function manipulate a page given:
@@ -45,7 +47,7 @@ import os, struct
 
 PAGE_SIZE = 4096  # Each page is 4 KB
 ```
-1. #### Create a Heap File
+1. ### Create a Heap File
 
 The function create_heap_file(file_name) creates a new empty heap 
 
@@ -56,7 +58,7 @@ def create_heap_file(file_name):
 
 ```
 
-2. #### Read page
+2. ### Read page
 
 The function read_page(file_name, page_number) reads a page given the page number.  
 
@@ -77,7 +79,7 @@ def read_page(file_name, page_number):
 
 ```
 
-3. #### Append page
+3. ### Append page
 
 The function append_page(file_name, page_data) Appends the provided page data to the end of the file. 
 
@@ -93,7 +95,7 @@ def append_page(file_name, page_data):
 
 ```
 
-4. #### Write page
+4. ### Write page
 
 The function append_page(file_name, page_data) Appends the provided page data to the end of the file. 
 
@@ -129,7 +131,7 @@ def append_page(file_name, page_data):
 
 ``` -->
 
-### Part 2: Example of Page format in bytes and bytes manipulation in python
+## Part 2: Bytes manipulation in python and Page Format Explained in Bytes 
 
 To visualize the file in binary format, we can use the Hex Editor extension in VS Code. Here is an example of the page data, which starts from byte `0x0` to byte `0xFFF` (4095).
 
@@ -141,8 +143,7 @@ The following 4 bytes (values **00 00 00 05**) represent the first entry of the 
 
 Note: All values are in Hex.
 
-#### **Example of bytes manipulation in python**
-1. #### Read value in given position from bytes in python
+1. ### Read value in given position from bytes in python
 
 Given the variable **page_data** returned from the read page shown in the figure below, we can use the following instruction:
 ```py
@@ -178,46 +179,53 @@ The code reads a 2-byte integer from `page_data`, starting at byte index 4094, a
 
 ![Page-data hex](assets/page-hex.jpg)
 
-1. #### Write value in given position from bytes in python
+2. ### Write value in given position from bytes in python
 
 To update the slot count for example in **page_data** the value in the bytes 4092-4093
 
 ```py
-new_value = ...
+new_value = 2
 new_value_bytes = new_value.to_bytes( 2, 'big')
 page_data = (page_data[:4092]+new_value_bytes+page_data[4094:])
 ```
-We can also use the```pack_into``` function from the module ```struct``` 
+We can also use the ```pack_into``` function from the module ```struct```.
+
+Note that pack_into requires a mutable buffer, so the bytes object needs to be converted to a ```bytearray```.
+
 ```py
-new_value = ...
+new_value = 2
 page_data_buffer = bytearray(page_data)
-struct.pack_into('>H', page_data_buffer, 4092, nb_to_add )  # Big-endian
+struct.pack_into('>H', page_data_buffer, 4092, new_value)  # Big-endian
 page_data = bytes(page_data_buffer)
 ```
 
-to insert many bytes of variable size such as ````record_data````
-
+to insert many bytes of variable size such as record of variable length:
 ```py
+data_bytes = b'\x41\x42\x43\x44' # the same as data_bytes = b'ABCD'
 data_length = len(data_bytes)
-page_data = (page_data[:start_byte_number] + data_bytes + page_data[start_byte_number+data_length:])
-
+page_data = (page_data[0:start_byte_number] + data_bytes + page_data[start_byte_number+data_length:4096])
 ```
+We can also use the ```pack_into``` function from the module ```struct```.
+
 ```py
+data_bytes = b'\x41\x42\x43\x44' # the same as data_bytes = b'ABCD'
 data_length = len(data_bytes)
 page_data_bytearray = bytearray(page_data)
-format = f'{record_length}B'  # 'B' is for unsigned char (1 byte unsigned int)
+format = f'{data_length}B'  # 'B' is for unsigned char (1 byte unsigned int)
 struct.pack_into(format, page_data_bytearray, start_byte_number, *data_bytes)
 page_data = bytes(page_data_bytearray)
 ```
-### Managing Pages and Records 
-1. #### Calculate the free space
+
+## Lab directives: Managing Pages and Records 
+1. ### Calculate the free space
+Write the function that calculates the free space give ```page_data```
 ```py
 def Calculate_free_space(page_data):
 ```
-**page_data** is the 4096 bytes returned when reading a page from the file.
-To calculate the free space we need to know form the **page_data** the free space offset and the number of records.
+```page_data``` is the 4096 bytes returned when reading a page from the file.
+To calculate the free space we need to know form the ```page_data``` the free space offset and the number of records.
 
-2. #### Insert a record
+2. ### Insert a record
 ```py
 def insert_record_data_to_page_data(page_data, record_data):
   # check the free space vs record length
@@ -227,7 +235,7 @@ def insert_record_data_to_page_data(page_data, record_data):
   # updating slot count and free space offset
   # returns he page_data with inserted record in bytes format
 ```
-**page_data**, **record_data** are both binary (bytes)
+```page_data```, ```record_data``` are both binary (bytes)
 
 using this function define the function 
 ```py
@@ -243,7 +251,7 @@ to initialize new empty page with null bytes you can use
 ```py
   page_data = b'\x00' * PAGE_SIZE
 ```
-3. #### Get a record form a page
+3. ### Get a record form a page
 ```py
 def get_record_from_page(page_data, record_id):
   # Retrieve a record from the specified page_data given the record ID.
@@ -254,7 +262,7 @@ def get_record_from_file(file_name, page_number, record_id):
   #Retrieve a record from the specified page of the heap file given the record ID.
 ```
 
-4. #### Get all records
+4. ### Get all records
 ```py
 def get_all_record_from_page(page_data, record_id):
   # Retrieve all records from the specified page_data.
